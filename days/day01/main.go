@@ -3,32 +3,22 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"util"
 )
 
 func main() {
-	fmt.Println("Part1 Answer:", Part01())
-	fmt.Println("Part1 Answer:", Part02())
+	p1, _ := Part01()
+	p2, _ := Part02()
+	fmt.Println("Part1 Answer:", p1)
+	fmt.Println("Part1 Answer:", p2)
 }
 
-func Part01() int {
-	// Get current working directory
-	wd, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error getting the directory:", err)
-	}
-	// Read the text file
-	pathToInput := filepath.Join(wd, "./days/day01/input.txt")
-	fileContent, err := os.ReadFile(pathToInput)
-	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return 0
-	}
-
-	dataInput := string(fileContent)
+func Part01() (int, error) {
+	dataInput, err := util.GetInput("01", false)
+	if err != nil { os.Exit(1) }
 
 	// Remove any characters from the text field with regex
 	pattern := "[a-zA-Z]"
@@ -43,24 +33,12 @@ func Part01() int {
 		val = val + (smush)
 	}
 
-	return val
+	return val, nil
 }
 
-func Part02() int {
-	// Get current working directory
-	wd, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error getting the directory:", err)
-	}
-	// Read the text file
-	pathToInput := filepath.Join(wd, "./days/day01/input.txt")
-	fileContent, err := os.ReadFile(pathToInput)
-	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return 0
-	}
-
-	dataInput := string(fileContent)
+func Part02() (int, error) {
+	dataInput, err := util.GetInput("01", false)
+	if err != nil { os.Exit(1) }
 
 	// Create number mapping
 	numPair := make(map[string]string)
@@ -96,5 +74,5 @@ func Part02() int {
 		val = val + (smush)
 	}
 
-	return val
+	return val, nil
 }
