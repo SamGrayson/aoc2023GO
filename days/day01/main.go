@@ -62,7 +62,7 @@ func Part02() int {
 
 	dataInput := string(fileContent)
 
-	// Replace number words with actual numbers
+	// Create number mapping
 	numPair := make(map[string]string)
 	numPair["one"] = "1"
 	numPair["two"] = "2"
@@ -74,7 +74,7 @@ func Part02() int {
 	numPair["eight"] = "8"
 	numPair["nine"] = "9"
 
-	// Replace words with numbers
+	// Replace words with numbers ex: on1e tw2o
 	cleanInput := dataInput
 	for k, v := range numPair {
 		safeInsertIdx := 2
