@@ -16,7 +16,7 @@ func GetInput(day string, debug bool) (string, error) {
 		// Set Path
 		var path string
 		if (!debug) {
-			path = fmt.Sprintf("./days/day%s/input.txt", "01")
+			path = fmt.Sprintf("./days/day%s/input.txt", day)
 		} else {
 			path = "input.txt"
 		}
