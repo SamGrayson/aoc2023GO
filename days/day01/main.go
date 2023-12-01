@@ -10,13 +10,13 @@ import (
 )
 
 func main() {
-	p1, _ := Part01()
-	p2, _ := Part02()
+	p1 := Part01()
+	p2 := Part02()
 	fmt.Println("Part1 Answer:", p1)
 	fmt.Println("Part1 Answer:", p2)
 }
 
-func Part01() (int, error) {
+func Part01() int {
 	dataInput, err := util.GetInput("01", false)
 	if err != nil { os.Exit(1) }
 
@@ -33,10 +33,10 @@ func Part01() (int, error) {
 		val = val + (smush)
 	}
 
-	return val, nil
+	return val
 }
 
-func Part02() (int, error) {
+func Part02() int {
 	dataInput, err := util.GetInput("01", false)
 	if err != nil { os.Exit(1) }
 
@@ -74,5 +74,5 @@ func Part02() (int, error) {
 		val = val + (smush)
 	}
 
-	return val, nil
+	return val
 }
