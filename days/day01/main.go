@@ -17,7 +17,7 @@ func main() {
 }
 
 func Part01() int {
-	dataInput, err := util.GetInput("01", false)
+	dataInput, err := util.GetInput("01")
 	if err != nil { os.Exit(1) }
 
 	// Remove any characters from the text field with regex
@@ -37,7 +37,7 @@ func Part01() int {
 }
 
 func Part02() int {
-	dataInput, err := util.GetInput("01", false)
+	dataInput, err := util.GetInput("01")
 	if err != nil { os.Exit(1) }
 
 	// Create number mapping

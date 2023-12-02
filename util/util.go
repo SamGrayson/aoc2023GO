@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 )
 
-func GetInput(day string, debug bool) (string, error) {
+func GetInput(day string) (string, error) {
 		// Get current working directory
-		wd, err := os.Getwd()
-		if err != nil {
-			fmt.Println("Error getting the directory:", err)
-			return "", err
-		}
-		// Set Path
+		wd, _ := os.Getwd()
+
+		// Are we debuggin?
+		debug := os.Getenv("DEBUG")
+
+		// Set debug path
 		var path string
-		if (!debug) {
+		if (!(debug == "true")) {
 			path = fmt.Sprintf("./days/day%s/input.txt", day)
 		} else {
 			path = "input.txt"
