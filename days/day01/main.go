@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,7 +17,7 @@ func main() {
 
 func Part01() int {
 	dataInput, err := util.GetInput("01")
-	if err != nil { os.Exit(1) }
+	if err != nil { panic(1) }
 
 	// Remove any characters from the text field with regex
 	pattern := "[a-zA-Z]"
@@ -38,7 +37,7 @@ func Part01() int {
 
 func Part02() int {
 	dataInput, err := util.GetInput("01")
-	if err != nil { os.Exit(1) }
+	if err != nil { panic(1) }
 
 	// Create number mapping
 	numPair := make(map[string]string)
