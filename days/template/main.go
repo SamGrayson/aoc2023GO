@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"util"
+
+	"github.com/thoas/go-funk"
 )
 
 func main() {
@@ -18,6 +20,7 @@ func Part01() {
 		os.Exit(1)
 	}
 	inputArr := strings.Fields(dataInput)
+	funk.All(true)
 
 	fmt.Println(inputArr)
 }
