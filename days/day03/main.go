@@ -13,7 +13,7 @@ func main() {
 }
 
 func Part01() {
-	dataInput, err := util.GetInput("02")
+	dataInput, err := util.GetInput("03")
 	if err != nil {
 		os.Exit(1)
 	}
@@ -23,7 +23,7 @@ func Part01() {
 }
 
 func Part02() {
-	dataInput, err := util.GetInput("02")
+	dataInput, err := util.GetInput("03")
 	if err != nil {
 		os.Exit(1)
 	}
