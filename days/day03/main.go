@@ -181,7 +181,7 @@ func Part02() int {
 			value := 1
 			// Get just the numbers
 			for k := range numbers {
-				value *= k
+				value *= k.(int)
 			}
 			gearTotal += value
 		}
