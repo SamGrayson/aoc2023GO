@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// fmt.Println(Part01())
+	fmt.Println(Part01())
 	fmt.Println(Part02())
 }
 
@@ -29,15 +29,15 @@ func Part01() float64 {
 
 	var scratchPoints []int
 
+	// Regex for grabbing digits
+	d := regexp.MustCompile("\\d+")
+
 	for _, v := range inputArr {
 		val := 0
 
 		split := strings.Split(v, "|")
-		trimmedW := strings.TrimSpace(split[0])
-		trimmedMy := strings.TrimSpace(split[1])
-		winningValues := util.SliceToMap(strings.Split(trimmedW, " "))
-		dirtyMyValues := strings.Split(trimmedMy, " ")
-		myValues := util.SliceToMap(util.RemoveEmptyChar(dirtyMyValues))
+		winningValues := util.SliceToMap(d.FindAllString(split[0], -1))
+		myValues := util.SliceToMap(d.FindAllString(split[1], -1))
 
 		for k := range winningValues {
 			if myValues[k] {
@@ -68,27 +68,22 @@ func Part02() int {
 		os.Exit(1)
 	}
 
-	// recursive function to track the card values used per game
-	// var scratchFinder = func(arr []string, scratches []int) int {
-	// 	return 1
-	// }
-
 	// Remove game:
-	m := regexp.MustCompile("Card \\d+:")
+	m := regexp.MustCompile(`Card \\d+:`)
 	dataInput = m.ReplaceAllString(dataInput, "")
 
 	inputArr := strings.Split(dataInput, "\n")
 
 	var games []game
 
+	// Regex for grabbing digits
+	d := regexp.MustCompile(`\\d+`)
+
 	// Generate values
 	for i, v := range inputArr {
 		split := strings.Split(v, "|")
-		trimmedW := strings.TrimSpace(split[0])
-		trimmedMy := strings.TrimSpace(split[1])
-		winningValues := util.SliceToMap(strings.Split(trimmedW, " "))
-		dirtyMyValues := strings.Split(trimmedMy, " ")
-		myValues := util.SliceToMap(util.RemoveEmptyChar(dirtyMyValues))
+		winningValues := util.SliceToMap(d.FindAllString(split[0], -1))
+		myValues := util.SliceToMap(d.FindAllString(split[1], -1))
 
 		wins := 0
 		for k := range winningValues {
@@ -116,10 +111,9 @@ func Part02() int {
 		i += 1
 	}
 
-	cardSum := 0
+	cardSum := funk.Reduce(games, func(acc int, g game) int {
+		return acc + g.copies
+	}, 0)
 
-	for _, v := range games {
-		cardSum += v.copies
-	}
-	return cardSum
+	return cardSum.(int)
 }

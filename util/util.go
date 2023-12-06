@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/thoas/go-funk"
 )
 
 func GetInput(day string) (string, error) {
@@ -66,4 +68,28 @@ func SliceToMap(arr []string) map[string]bool {
 		ret[arr[i]] = true
 	}
 	return ret
+}
+
+func ArrStringToInt(arr []string) []int {
+	ret := funk.Map(
+		arr,
+		func(n string) int {
+			new, _ := strconv.Atoi(n)
+			return new
+		})
+	return ret.([]int)
+}
+
+func NumMax(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func NumMin(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
