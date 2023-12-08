@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"util"
@@ -160,33 +161,41 @@ func Part02() int {
 	}
 	inputArr := strings.Split(dataInput, "\n")
 
-	var getMaxNumHand = func(jokerHand []string) []string {
-		var maxVal []string
-		nonJokers := funk.Reduce(jokerHand, func(acc []string, s string) []string {
-			if s != "J" {
-				acc = append(acc, s)
-			}
-			return acc
-		}, make([]string, 0)).([]string)
-		for _, v := range nonJokers {
-			fmt.Println(v)
-		}
-		return maxVal
+	type kv struct {
+		Key   string
+		Value []string
 	}
 
 	var setupHand = func(incHand []string) hand {
 		numHand := []string{}
 		matches := make(map[string][]string)
 		wager, _ := strconv.Atoi(incHand[1])
+		jokerCount := strings.Count(incHand[0], "J")
 		for i := 0; i < len(incHand[0]); i++ {
 			numStr := fmt.Sprintf("%d", CardValues2[string(incHand[0][i])])
 			numHand = append(numHand, numStr)
 			matches[numStr] = append(matches[numStr], numStr)
 		}
 
-		if funk.Contains(numHand, "0") {
-			maxHand := getMaxNumHand(numHand)
-			fmt.Println(maxHand)
+		// Remove joker matches
+		delete(matches, "0")
+
+		var keyValues []kv
+		for k, v := range matches {
+			keyValues = append(keyValues, kv{
+				Key:   k,
+				Value: v,
+			})
+		}
+
+		sort.Slice(keyValues, func(i int, j int) bool {
+			return len(keyValues[i].Value) > len(keyValues[j].Value)
+		})
+
+		if jokerCount > 0 && len(keyValues) > 0 {
+			for i := 0; i < jokerCount; i++ {
+				matches[keyValues[0].Key] = append(matches[keyValues[0].Key], "J")
+			}
 		}
 
 		cardRankKey := ""
@@ -197,6 +206,10 @@ func Part02() int {
 		}
 		if len(cardRankKey) == 0 {
 			cardRankKey = "1"
+		}
+
+		if jokerCount == 5 {
+			cardRankKey = "5"
 		}
 
 		return hand{
@@ -213,7 +226,28 @@ func Part02() int {
 		return fmtHand
 	}).([]hand)
 
-	fmt.Println(hands)
+	handRankingTracker := hands
+	// Sort left -> right
+	for i := 1; i < len(hands); i++ {
+		key := hands[i]
+		j := i - 1
 
-	return 1
+		for j >= 0 && isLeftLowerThanRight(hands[j], key) {
+			handRankingTracker[j+1] = handRankingTracker[j]
+			j = j - 1
+		}
+		handRankingTracker[j+1] = key
+	}
+
+	i := len(hands)
+	result := funk.Reduce(hands, func(acc int, h hand) int {
+		winnings := h.wager * i
+		i--
+		return acc + winnings
+	}, 0)
+
+	funk.All(true)
+
+	fmt.Println(result)
+	return result.(int)
 }
