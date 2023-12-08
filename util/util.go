@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -92,4 +93,34 @@ func NumMin(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func BigMul(x, y *big.Int) *big.Int {
+	return big.NewInt(0).Mul(x, y)
+}
+
+// Function to calculate the greatest common divisor (GCD) of two numbers using Euclidean algorithm
+func GCD(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+// Function to calculate the least common multiple (LCM) of two numbers
+func LCM(a, b int) int {
+	return a * b / GCD(a, b)
+}
+
+// Function to find the least common denominator (LCD) of multiple numbers
+func LCMFromSlice(numbers []int) int {
+	if len(numbers) < 2 {
+		panic("At least two numbers required")
+	}
+
+	lcmValue := numbers[0]
+	for i := 1; i < len(numbers); i++ {
+		lcmValue = LCM(lcmValue, numbers[i])
+	}
+	return lcmValue
 }
