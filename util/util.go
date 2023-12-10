@@ -10,6 +10,12 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+func ToInt(s string) int {
+	res, _ := strconv.Atoi(s)
+
+	return res
+}
+
 func GetInput(day string) (string, error) {
 	// Get current working directory
 	wd, _ := os.Getwd()
