@@ -15,11 +15,7 @@ func main() {
 	fmt.Println("Part 1 gearTotal: ", Part02())
 }
 
-var neighbors = [][]int{
-	{-1, -1}, {-1, 0}, {-1, 1},
-	{0, -1} /*{0, 0}, */, {0, 1},
-	{1, -1}, {1, 0}, {1, 1},
-}
+var neighbors = util.GetNeighborsSquare()
 
 type find struct {
 	value string

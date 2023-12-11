@@ -130,3 +130,18 @@ func LCMFromSlice(numbers []int) int {
 	}
 	return lcmValue
 }
+
+func GetNeighborsSquare() [][]int {
+	return [][]int{
+		{-1, -1}, {-1, 0}, {-1, 1},
+		{0, -1} /*{0, 0}, */, {0, 1},
+		{1, -1}, {1, 0}, {1, 1},
+	}
+}
+
+func GetNeighborsPlus() [][]int {
+	// up down left right
+	return [][]int{
+		{-1, 0}, {1, 0} /*{0,0}, */, {0, -1}, {0, 1},
+	}
+}
