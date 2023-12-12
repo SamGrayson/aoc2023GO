@@ -145,3 +145,12 @@ func GetNeighborsPlus() [][]int {
 		{-1, 0}, {1, 0} /*{0,0}, */, {0, -1}, {0, 1},
 	}
 }
+
+func PrintMatrix(matrix [][]string) {
+	for _, row := range matrix {
+		for _, cell := range row {
+			fmt.Printf("%s", cell)
+		}
+		fmt.Println()
+	}
+}
