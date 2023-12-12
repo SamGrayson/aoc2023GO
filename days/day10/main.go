@@ -184,7 +184,7 @@ func expandMatrix(matrix [][]string, pipes map[string]pipe) [][]string {
 			for _, dir := range util.GetNeighborsSquare() {
 				newX, newY := dir[0], dir[1]
 				if newX >= 0 && newX < len(matrix) && newY >= 0 && newY < len(matrix[0]) {
-					expanded[expandedI+dir[0]][expandedJ+dir[1]+expandedJ] = "#"
+					expanded[expandedI+dir[0]][expandedJ+dir[1]+expandedJ] = " "
 				}
 			}
 			expandedJ = 1 + j
@@ -313,7 +313,7 @@ func Part02() int {
 	twoPrev := startingPoint
 
 	// boundry indx tracker
-	tracked := map[string]string{}
+	boundry := map[string]string{}
 
 	// Helper to conv idx to string
 	var idxStringConv = func(idx [2]int) string {
@@ -322,9 +322,9 @@ func Part02() int {
 	}
 
 	// Setup starting points for matrix
-	tracked[idxStringConv([2]int{startingPoint[0], startingPoint[1]})] = matrix[startingPoint[0]][startingPoint[1]]
-	tracked[idxStringConv([2]int{currentPipeOne.coord[0], currentPipeOne.coord[1]})] = matrix[currentPipeOne.coord[0]][currentPipeOne.coord[1]]
-	tracked[idxStringConv([2]int{currentPipeTwo.coord[0], currentPipeTwo.coord[1]})] = matrix[currentPipeTwo.coord[0]][currentPipeTwo.coord[1]]
+	boundry[idxStringConv([2]int{startingPoint[0], startingPoint[1]})] = matrix[startingPoint[0]][startingPoint[1]]
+	boundry[idxStringConv([2]int{currentPipeOne.coord[0], currentPipeOne.coord[1]})] = matrix[currentPipeOne.coord[0]][currentPipeOne.coord[1]]
+	boundry[idxStringConv([2]int{currentPipeTwo.coord[0], currentPipeTwo.coord[1]})] = matrix[currentPipeTwo.coord[0]][currentPipeTwo.coord[1]]
 
 	// Create the new circle & matrix
 	for !maxFound {
@@ -338,8 +338,8 @@ func Part02() int {
 		twoPrev = currentPipeTwo.coord
 		currentPipeTwo = resultTwo
 
-		tracked[idxStringConv([2]int{currentPipeOne.coord[0], currentPipeOne.coord[1]})] = matrix[currentPipeOne.coord[0]][currentPipeOne.coord[1]]
-		tracked[idxStringConv([2]int{currentPipeTwo.coord[0], currentPipeTwo.coord[1]})] = matrix[currentPipeTwo.coord[0]][currentPipeTwo.coord[1]]
+		boundry[idxStringConv([2]int{currentPipeOne.coord[0], currentPipeOne.coord[1]})] = matrix[currentPipeOne.coord[0]][currentPipeOne.coord[1]]
+		boundry[idxStringConv([2]int{currentPipeTwo.coord[0], currentPipeTwo.coord[1]})] = matrix[currentPipeTwo.coord[0]][currentPipeTwo.coord[1]]
 
 		if currentPipeTwo.coord == currentPipeOne.coord {
 			maxFound = true
@@ -350,7 +350,7 @@ func Part02() int {
 	for i, row := range matrix {
 		for j := range row {
 			strIdx := idxStringConv([2]int{i, j})
-			_, ok := tracked[strIdx]
+			_, ok := boundry[strIdx]
 			if !ok {
 				matrix[i][j] = "."
 			}
@@ -359,10 +359,11 @@ func Part02() int {
 
 	// Expand the matrix
 	expandedMatrix := expandMatrix(matrix, pipes)
+	util.PrintMatrix(expandedMatrix)
 
 	// Manually put first place to start, reset tracked
-	stack := [][2]int{{134, 141}}
-	tracked = map[string]string{}
+	stack := [][2]int{{130, 141}}
+	tracked := map[string]bool{}
 	var pipeTypes = map[string]bool{"J": true, "|": true, "-": true, "S": true, "F": true, "7": true, "L": true}
 
 	// Track "." count
@@ -372,7 +373,6 @@ func Part02() int {
 		// Pop the first value
 		curr := stack[0]
 		stack = stack[1:]
-		tracked[idxStringConv([2]int{curr[0], curr[1]})] = expandedMatrix[curr[0]][curr[1]]
 
 		if expandedMatrix[curr[0]][curr[1]] == "." {
 			insideCount++
@@ -390,6 +390,7 @@ func Part02() int {
 			if row >= 0 && row <= len(expandedMatrix) && col <= len(expandedMatrix[0]) && col >= 0 {
 				strIdx := idxStringConv([2]int{row, col})
 				if _, ok := tracked[strIdx]; !ok {
+					tracked[idxStringConv([2]int{row, col})] = true
 					stack = append(stack, [2]int{row, col})
 				}
 			}
