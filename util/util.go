@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -153,4 +154,22 @@ func PrintMatrix(matrix [][]string) {
 		}
 		fmt.Println()
 	}
+}
+
+func PrintMatrixFloat(matrix [][]float64) {
+	for _, row := range matrix {
+		for _, cell := range row {
+			fmt.Printf("%d", int(cell))
+		}
+		fmt.Println()
+	}
+}
+
+func IdxStringConv(idx [2]int) string {
+	idxStr := fmt.Sprint(idx[0]) + "," + fmt.Sprint(idx[1])
+	return idxStr
+}
+
+func GetManhattanDistance(p1 [2]float64, p2 [2]float64) float64 {
+	return math.Abs(p2[0]-p1[0]) + math.Abs(p2[1]-p1[1])
 }
