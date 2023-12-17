@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"util"
 
@@ -124,7 +125,33 @@ type part struct {
 	validCombinations *[]string
 }
 
-func Part02() int {
+func shouldContinue(s []string, start int, check []int) bool {
+	test := s[0:start]
+	// If the last character in the string is a "." check the first # length.
+	if start > 0 && test[len(test)-1] == "." {
+		test := strings.Join(test, "")
+		re := regexp.MustCompile(`#+`)
+		matches := re.FindAllString(test, -1)
+
+		if len(matches) == 0 {
+			return true
+		}
+
+		groupsInt := funk.Map(matches, func(str string) int {
+			return len(str)
+		}).([]int)
+
+		// If we found more # then are even in check, go ahead and return false
+		if len(groupsInt) > len(check) {
+			return false
+		}
+
+		return slices.Equal(groupsInt, check[0:len(groupsInt)])
+	}
+	return true
+}
+
+func Part02(MAX int) int {
 	dataInput, err := util.GetInput("12")
 	if err != nil {
 		os.Exit(1)
@@ -134,6 +161,19 @@ func Part02() int {
 	var recur func(s []string, start, end int, combos *map[string]bool, lockedIdx map[int]bool, check []int, validCombinations *[]string)
 	recur = func(s []string, start, end int, combos *map[string]bool, lockedIdx map[int]bool, check []int, validCombinations *[]string) {
 		stringJoin := strings.Join(s, "")
+
+		// Look at the # that exist as we go. If it doesn't match the first check - we can skip that thread
+		if !shouldContinue(s, start, check) {
+			(*combos)[stringJoin] = true
+			return
+		}
+
+		// Skip iterations where the start is a locked index
+		if lockedIdx[start] && start != end {
+			recur(s, start+1, end, combos, lockedIdx, check, validCombinations)
+			return
+		}
+
 		if (*combos)[stringJoin] {
 			return
 		}
@@ -148,10 +188,20 @@ func Part02() int {
 			// Don't swap "locked" indexes
 			if !lockedIdx[i] && !lockedIdx[start] {
 				s[start], s[i] = s[i], s[start]
+				str2 := strings.Join(s, "")
+				if (*combos)[str2+fmt.Sprint(start+1)+","+fmt.Sprint(end)] {
+					s[start], s[i] = s[i], s[start] // flip it back
+					continue
+				}
+				(*combos)[str2+fmt.Sprint(start+1)+","+fmt.Sprint(end)] = true
 				recur(s, start+1, end, combos, lockedIdx, check, validCombinations)
 				s[start], s[i] = s[i], s[start] // flip it back
 			} else {
 				// I want to make it all the way to the end
+				if (*combos)[stringJoin+fmt.Sprint(start+1)+","+fmt.Sprint(end)] {
+					continue
+				}
+				(*combos)[stringJoin+fmt.Sprint(start+1)+","+fmt.Sprint(end)] = true
 				recur(s, start+1, end, combos, lockedIdx, check, validCombinations)
 			}
 		}
@@ -160,8 +210,13 @@ func Part02() int {
 	finalValue := 0
 	finalValues := []int{}
 
-	for i, v := range inputArr {
-		fmt.Println("Currently Processing Input: ", i)
+	// // Concurrency bby
+	// sem := make(chan int, MAX)
+
+	for _, v := range inputArr {
+		// sem <- 1 // will block if there is MAX ints in sem
+
+		// go func(i int, v string, finalValue int, finalValues ) {
 		var combos = map[string]bool{}
 		inputSplit := strings.Split(v, " ")
 		testString := inputSplit[0]
@@ -250,16 +305,18 @@ func Part02() int {
 				multi := float64(validLen / finalValue)
 				right := int(math.Pow(multi, 4))
 				finalValues = append(finalValues, (finalValue * right))
+				fmt.Printf("%s, %d \n", testString, (finalValue * right))
 				finalValue = 0
 			}
 		}
+		// 	<-sem // removes an int from sem, allowing another to proceed
+		// }(i, v)
 	}
-
 	// Return the sum of valid combinations
 	return funk.SumInt(finalValues)
 }
 
 func main() {
 	// fmt.Println("Valid combinations p1: ", Part01())
-	fmt.Println("Valid combinations p2: ", Part02())
+	fmt.Println("Valid combinations p2: ", Part02(5))
 }
