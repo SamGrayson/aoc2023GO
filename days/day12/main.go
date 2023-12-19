@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"reflect"
 	"regexp"
-	"slices"
+	"strconv"
 	"strings"
 	"util"
 
@@ -38,7 +37,6 @@ func Part01() int {
 	inputArr := strings.Split(dataInput, "\n")
 
 	validCombinations := []string{}
-
 	var recur func(s []string, start, end int, combos *map[string]bool, lockedIdx map[int]bool, check []int)
 	recur = func(s []string, start, end int, combos *map[string]bool, lockedIdx map[int]bool, check []int) {
 		stringJoin := strings.Join(s, "")
@@ -122,201 +120,121 @@ type part struct {
 	testArr           []string
 	lockedIdx         map[int]bool
 	springSplit       []int
-	validCombinations *[]string
+	validCombinations []string
 }
 
-func shouldContinue(s []string, start int, check []int) bool {
-	test := s[0:start]
-	// If the last character in the string is a "." check the first # length.
-	if start > 0 && test[len(test)-1] == "." {
-		test := strings.Join(test, "")
-		re := regexp.MustCompile(`#+`)
-		matches := re.FindAllString(test, -1)
-
-		if len(matches) == 0 {
-			return true
-		}
-
-		groupsInt := funk.Map(matches, func(str string) int {
-			return len(str)
-		}).([]int)
-
-		// If we found more # then are even in check, go ahead and return false
-		if len(groupsInt) > len(check) {
-			return false
-		}
-
-		return slices.Equal(groupsInt, check[0:len(groupsInt)])
-	}
-	return true
-}
-
-func Part02(MAX int) int {
+func Part02() int64 {
 	dataInput, err := util.GetInput("12")
 	if err != nil {
 		os.Exit(1)
 	}
 	inputArr := strings.Split(dataInput, "\n")
 
-	var recur func(s []string, start, end int, combos *map[string]bool, lockedIdx map[int]bool, check []int, validCombinations *[]string)
-	recur = func(s []string, start, end int, combos *map[string]bool, lockedIdx map[int]bool, check []int, validCombinations *[]string) {
-		stringJoin := strings.Join(s, "")
+	finalValues := int64(0)
 
-		// Look at the # that exist as we go. If it doesn't match the first check - we can skip that thread
-		if !shouldContinue(s, start, check) {
-			(*combos)[stringJoin] = true
-			return
+	var doit func(input string, start, end int, lockedIdx map[int]bool, springs []int, validCombos int64, memo *map[string]int64, hashLen int) int64
+	doit = func(input string, start, end int, lockedIdx map[int]bool, springs []int, validCombos int64, memo *map[string]int64, hashLen int) int64 {
+		check := input[start:]
+		if start > 0 {
+			check = input[start-1:]
+		}
+		memoKey := check + strconv.Itoa(start) + fmt.Sprint(springs) + strconv.Itoa(hashLen)
+		if val, ok := (*memo)[memoKey]; ok {
+			return val
 		}
 
-		// Skip iterations where the start is a locked index
-		if lockedIdx[start] && start != end {
-			recur(s, start+1, end, combos, lockedIdx, check, validCombinations)
-			return
+		if start > 0 && string(check[0]) == "#" {
+			hashLen++
 		}
 
-		if (*combos)[stringJoin] {
-			return
-		}
-		if start == end {
-			(*combos)[stringJoin] = true
-			if checkVilidity(s, check) {
-				*validCombinations = append(*validCombinations, stringJoin)
+		// at the end
+		if start == len(input) {
+			// Extra #, not valid
+			if len(springs) == 0 && hashLen > 0 {
+				return 0
 			}
-			return
-		}
-		for i := range s {
-			// Don't swap "locked" indexes
-			if !lockedIdx[i] && !lockedIdx[start] {
-				s[start], s[i] = s[i], s[start]
-				str2 := strings.Join(s, "")
-				if (*combos)[str2+fmt.Sprint(start+1)+","+fmt.Sprint(end)] {
-					s[start], s[i] = s[i], s[start] // flip it back
-					continue
-				}
-				(*combos)[str2+fmt.Sprint(start+1)+","+fmt.Sprint(end)] = true
-				recur(s, start+1, end, combos, lockedIdx, check, validCombinations)
-				s[start], s[i] = s[i], s[start] // flip it back
-			} else {
-				// I want to make it all the way to the end
-				if (*combos)[stringJoin+fmt.Sprint(start+1)+","+fmt.Sprint(end)] {
-					continue
-				}
-				(*combos)[stringJoin+fmt.Sprint(start+1)+","+fmt.Sprint(end)] = true
-				recur(s, start+1, end, combos, lockedIdx, check, validCombinations)
+
+			// Check the last hash len
+			if hashLen > 0 && hashLen == springs[0] {
+				// Pop the first
+				springs = springs[1:]
 			}
+
+			// Success!
+			if len(springs) == 0 {
+				return 1
+			}
+			return 0
 		}
+
+		if string(check[0]) == "." && hashLen > 0 && len(springs) > 0 {
+			// If we had a valid amount, continue else return
+			if hashLen != springs[0] {
+				return 0
+			}
+			// Pop the first and continue
+			springs = springs[1:]
+			hashLen = 0
+		}
+
+		// If we're at the index, skip
+		if lockedIdx[start] {
+			return doit(input, start+1, end, lockedIdx, springs, validCombos, memo, hashLen)
+		}
+
+		// if we're at a question mark, replace with . & # and move on
+		var dotStrRes int64 = 0
+		var hashStrRes int64 = 0
+		if string(input[start]) == "?" {
+			dotString := input[:start] + string(".") + input[start+1:]
+			dotStrRes = doit(dotString, start+1, end, lockedIdx, springs, validCombos, memo, hashLen)
+
+			hashString := input[:start] + string("#") + input[start+1:]
+			hashStrRes = doit(hashString, start+1, end, lockedIdx, springs, validCombos, memo, hashLen)
+		}
+
+		(*memo)[memoKey] = dotStrRes + hashStrRes
+		return dotStrRes + hashStrRes
 	}
-
-	finalValue := 0
-	finalValues := []int{}
-
-	// // Concurrency bby
-	// sem := make(chan int, MAX)
 
 	for _, v := range inputArr {
-		// sem <- 1 // will block if there is MAX ints in sem
-
-		// go func(i int, v string, finalValue int, finalValues ) {
-		var combos = map[string]bool{}
 		inputSplit := strings.Split(v, " ")
 		testString := inputSplit[0]
-		testStringSplit := strings.Split(testString, "")
+		springs := inputSplit[1]
 
-		// Test 1 then Test 2
-		// Test 2 result / Test 1 result = future
-		// Test 1 result * (future * 3)
-		part1 := part{
-			testArr:           testStringSplit,
-			lockedIdx:         map[int]bool{},
-			validCombinations: &[]string{},
-		}
+		newTest := []string{testString, testString, testString, testString, testString}
+		// newTest := []string{testString}
+		newTestStr := strings.Join(newTest, "?")
+		testStringSplit := strings.Split(newTestStr, "")
 
-		part2End := append([]string{"?"}, testStringSplit...)
-		part2 := part{
-			testArr:           append(testStringSplit, part2End...),
-			lockedIdx:         map[int]bool{},
-			validCombinations: &[]string{},
-		}
-		var parts = []part{part1, part2}
-		for i, part := range parts {
-			// Set "locked" indexes (those that were already set)
-			springs := inputSplit[1]
+		newSpring := []string{springs, springs, springs, springs, springs}
+		// newSpring := []string{springs}
+		newSpringStr := strings.Join(newSpring, ",")
 
-			// Get the springs to test. (convert to []int)
-			springSplit := funk.Map(strings.Split(springs, ","), func(s string) int {
-				return util.ToInt(s)
-			}).([]int)
-
-			if i == 0 {
-				part.springSplit = springSplit
-			} else if i == 1 {
-				part.springSplit = append(springSplit, springSplit...)
-			}
-
-			for i, v := range part.testArr {
-				if v != "?" {
-					part.lockedIdx[i] = true
-				}
-			}
-
-			// Get total springs and replace the string with the appropriate number of #s
-			springTotal := funk.Reduce(part.springSplit, func(acc int, s int) int {
-				acc += s
-				return acc
-			}, 0).(int)
-
-			var springAdd int
-			if i == 1 {
-				springAdd = springTotal - (strings.Count(testString, "#") * 2)
-			} else {
-				// How many springs do we want to replace where there are ?
-				springAdd = springTotal - strings.Count(testString, "#")
-			}
-
-			// Replace ? with required #
-			for springAdd > 0 {
-				for i, v := range part.testArr {
-					if v == "?" {
-						part.testArr[i] = "#"
-						springAdd--
-						break
-					}
-				}
-			}
-
-			// Replace remaining ? with "."
-			for i, v := range part.testArr {
-				if v == "?" {
-					part.testArr[i] = "."
-				}
-			}
-
-			// gather string permutations
-			recur(part.testArr, 0, len(part.testArr)-1, &combos, part.lockedIdx, part.springSplit, part.validCombinations)
-
-			// Get the results
-			if i == 0 {
-				// Add to the final result
-				finalValue += len(*part.validCombinations)
-			}
-			if i == 1 {
-				// More math we need to do
-				validLen := len(*part.validCombinations)
-				multi := float64(validLen / finalValue)
-				right := int(math.Pow(multi, 4))
-				finalValues = append(finalValues, (finalValue * right))
-				fmt.Printf("%s, %d \n", testString, (finalValue * right))
-				finalValue = 0
+		// Set "locked" indexes (those that were already set)
+		var lockedIdx = map[int]bool{}
+		for i, v := range testStringSplit {
+			if v != "?" {
+				lockedIdx[i] = true
 			}
 		}
-		// 	<-sem // removes an int from sem, allowing another to proceed
-		// }(i, v)
+
+		springSplit := funk.Map(strings.Split(newSpringStr, ","), func(s string) int {
+			return util.ToInt(s)
+		}).([]int)
+
+		var memo = make(map[string]int64, 0)
+		validPoint := doit(newTestStr, 0, len(newTestStr), lockedIdx, springSplit, 0, &memo, 0)
+
+		fmt.Println(validPoint)
+		finalValues += validPoint
 	}
 	// Return the sum of valid combinations
-	return funk.SumInt(finalValues)
+
+	return finalValues
 }
 
 func main() {
 	// fmt.Println("Valid combinations p1: ", Part01())
-	fmt.Println("Valid combinations p2: ", Part02(5))
+	fmt.Println("Valid combinations p2: ", Part02())
 }

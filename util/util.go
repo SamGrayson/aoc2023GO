@@ -17,6 +17,12 @@ func ToInt(s string) int {
 	return res
 }
 
+func ToFloat(s string) float64 {
+	res, _ := strconv.ParseFloat(s, 64)
+
+	return res
+}
+
 func GetInput(day string) (string, error) {
 	// Get current working directory
 	wd, _ := os.Getwd()
