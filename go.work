@@ -1,0 +1,19 @@
+go 1.21.2
+
+use (
+	./days/day01
+	./days/day02
+	./days/day03
+	./days/day04
+	./days/day05
+	./days/day06
+	./days/day07
+	./days/day08
+	./days/day09
+	./days/day10
+	./days/day11
+	./days/day12
+	./days/day13
+	./days/template
+	./util
+)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"slices"
 	"strings"
@@ -14,59 +13,64 @@ type matrix struct {
 	cols []string
 }
 
-func match(input []string) ([]int, bool) {
-	// detect col
-	i := 0
-	j := len(input) - 1
+func validMirror(input []string, i, j int) ([]int, bool) {
 	matches := []int{}
-
-	matchFound := false
-	success := false
 	for j > i {
-		if !matchFound {
-			// Start from left, check till equal
-			for s := i; s < j; s++ {
-				if input[s] == input[j] {
-					// Not even, not yet a mirror - continue
-					if (j-s)%2 == 0 {
-						continue
-					}
-					i = s
-					matchFound = true
-					break
-				}
-			}
-		}
-
-		if !matchFound {
-			// Start from right, check till equal
-			for s := j; s > i; s-- {
-				if input[s] == input[i] {
-					// Not even, not yet a mirror - continue
-					if (j-s)%2 == 0 {
-						break
-					}
-					j = s
-					matchFound = true
-					break
-				}
-			}
-		}
-
-		if matchFound && input[i] == input[j] {
+		if input[i] == input[j] {
 			matches = append(matches, []int{i, j}...)
 			j--
 			i++
 			continue
 		} else {
-			break
+			return matches, false
+		}
+	}
+	return matches, true
+}
+
+func match(input []string) ([]int, bool) {
+	// detect col
+	i := 0
+	j := len(input) - 1
+
+	matches := []int{}
+	valid := false
+	matchFound := false
+	if !matchFound {
+		// Start from left, check till equal
+		for s := i; s < j; s++ {
+			if input[s] == input[j] {
+				// Not even, not yet a mirror - continue
+				if (j-s)%2 == 0 {
+					continue
+				}
+				matches, valid = validMirror(input, s, j)
+				if valid {
+					matchFound = true
+					break
+				}
+			}
 		}
 	}
 
-	if j < i {
-		success = true
+	if !matchFound {
+		// Start from right, check till equal
+		for s := j; s > i; s-- {
+			if input[s] == input[i] {
+				// Not even, not yet a mirror - continue
+				if (j-s)%2 == 0 {
+					continue
+				}
+				matches, valid = validMirror(input, i, s)
+				if valid {
+					matchFound = true
+					break
+				}
+			}
+		}
 	}
-	return matches, success
+
+	return matches, matchFound
 }
 
 func Part01() int {
@@ -127,13 +131,13 @@ func Part01() int {
 		// Matched cols started on the edge, its a mirror
 
 		if colSuccess && len(matchedCols) > 0 && (matchedCols[len(matchedCols)-1] == len(matrix.cols)-1 || matchedCols[0] == 0) {
-			mid := len(matchedCols) / 2
+			mid := (len(matchedCols) - 1) / 2
 			// Left of the right side of the mirror
-			colVal = matchedCols[int(math.Round(float64(mid)))]
+			colVal = matchedCols[mid] + 1
 		} else if rowSuccess && len(matchedRows) > 0 && (matchedRows[len(matchedRows)-1] == len(matrix.rows)-1 || matchedRows[0] == 0) {
-			mid := len(matchedRows) / 2
+			mid := (len(matchedRows) - 1) / 2
 			// Top of the bottom side of the mirror
-			rowVal = matchedRows[int(math.Round(float64(mid)))]
+			rowVal = matchedRows[mid] + 1
 		}
 
 		fmt.Printf("Matrix: %d cols: %s, rows: %s, cVal: %d, rVal %d \n", i, fmt.Sprint(matchedCols), fmt.Sprint(matchedRows), colVal, rowVal)
