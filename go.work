@@ -14,6 +14,7 @@ use (
 	./days/day11
 	./days/day12
 	./days/day13
+	./days/day14
 	./days/template
 	./util
 )

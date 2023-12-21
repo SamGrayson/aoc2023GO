@@ -192,3 +192,7 @@ func Difference(a, b []string) ([]string, []int) {
 	}
 	return diffStr, diffInt
 }
+
+func ReplaceAtIdx(str string, replacement rune, index int) string {
+	return str[:index] + string(replacement) + str[index+1:]
+}
