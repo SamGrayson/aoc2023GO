@@ -179,3 +179,16 @@ func IdxStringConv(idx [2]int) string {
 func GetManhattanDistance(p1 [2]float64, p2 [2]float64) float64 {
 	return math.Abs(p2[0]-p1[0]) + math.Abs(p2[1]-p1[1])
 }
+
+// Returns the string difference and the index its located at
+func Difference(a, b []string) ([]string, []int) {
+	diffStr := []string{}
+	diffInt := []int{}
+	for i, va := range a {
+		if va != b[i] {
+			diffStr = append(diffStr, va)
+			diffInt = append(diffInt, i)
+		}
+	}
+	return diffStr, diffInt
+}
