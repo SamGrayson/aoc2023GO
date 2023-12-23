@@ -181,17 +181,17 @@ func Part02() int {
 	}
 	inputArr := strings.Fields(dataInput)
 
-	// counts := []int{}
-
-	var first string
+	visited := map[string]int{}
 
 	cycles := 1000000000
+	// If > 0 there's a remainder we want to calculate through
+	remainder := -1
 	// north, then west, then south, then east
-	for cycles > 0 {
+	for cycles > 0 && remainder != 0 {
 		// Speed Track
-		if cycles%1000 == 0 {
-			fmt.Println("Processed: ", cycles)
-		}
+		// if cycles%1000 == 0 {
+		// 	fmt.Println("Processed: ", cycles)
+		// }
 
 		rolling := true
 
@@ -238,27 +238,27 @@ func Part02() int {
 			inputArr[i] = goRight(inputArr[i])
 		}
 
-		if cycles == 1000000000 {
-			first = strings.Join(inputArr, "")
-			fmt.Println(first)
+		// Find the actual loop
+		if visit, ok := visited[strings.Join(inputArr, "")]; remainder < 0 && ok {
+			// we found a loop -
+			fmt.Println("loop! ", visit, " : ", cycles)
+			// get remainder, then just loop through that next bit..
+			remainder = visit % (visit - cycles)
+		} else {
+			visited[strings.Join(inputArr, "")] = cycles
 		}
-
-		finalCount := 0
-		slices.Reverse(inputArr)
-		for i := len(inputArr) - 1; i >= 0; i-- {
-			for _, v := range inputArr[i] {
-				if v == 'O' {
-					finalCount += (i + 1)
-				}
-			}
+		if remainder > 0 {
+			remainder--
 		}
-		counts = append(counts, finalCount)
-
 		cycles--
 	}
 
-	fmt.Println(inputArr)
+	finalValue := calculate(inputArr)
+	fmt.Println("Part 2: ", finalValue)
+	return finalValue
+}
 
+func calculate(inputArr []string) int {
 	// final count
 	finalCount := 0
 	slices.Reverse(inputArr)
@@ -269,7 +269,7 @@ func Part02() int {
 			}
 		}
 	}
-	fmt.Println("Part 2: ", finalCount)
+	slices.Reverse(inputArr)
 	return finalCount
 }
 
