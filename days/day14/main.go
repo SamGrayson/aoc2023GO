@@ -54,15 +54,7 @@ func Part01() int {
 	}
 
 	// final count
-	finalCount := 0
-	slices.Reverse(inputArr)
-	for i := len(inputArr) - 1; i >= 0; i-- {
-		for _, v := range inputArr[i] {
-			if v == 'O' {
-				finalCount += (i + 1)
-			}
-		}
-	}
+	finalCount := calculate(inputArr)
 	fmt.Println("Part 1: ", finalCount)
 	return finalCount
 
@@ -259,18 +251,18 @@ func Part02() int {
 }
 
 func calculate(inputArr []string) int {
-	// final count
-	finalCount := 0
-	slices.Reverse(inputArr)
-	for i := len(inputArr) - 1; i >= 0; i-- {
-		for _, v := range inputArr[i] {
-			if v == 'O' {
-				finalCount += (i + 1)
+	load := 0
+	count := len(inputArr)
+	for _, line := range inputArr {
+		for _, r := range line {
+			if r == 'O' {
+				load += count
 			}
 		}
+		count--
 	}
-	slices.Reverse(inputArr)
-	return finalCount
+
+	return load
 }
 
 func main() {

@@ -197,6 +197,10 @@ func ReplaceAtIdx(str string, replacement rune, index int) string {
 	return str[:index] + string(replacement) + str[index+1:]
 }
 
+func RemoveIndex(s []string, index int) []string {
+	return append(s[:index], s[index+1:]...)
+}
+
 func ArrWithDefaultStr(len int, def string) []string {
 	arr := make([]string, len)
 	for i := range arr {
