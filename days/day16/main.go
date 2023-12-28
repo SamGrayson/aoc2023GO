@@ -3,11 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 	"util"
-
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -41,110 +38,8 @@ var directions = map[string][2]int{
 	"^": {-1, 0},
 }
 
-type lazer struct {
-	coord     [2]int
-	direction string
-	visited   *[]string
-}
-
 func inBounds(row, col, rowLen, colLen int) bool {
 	return row >= 0 && row <= rowLen && col <= colLen && col >= 0
-}
-
-func motion(laz *lazer, direction string, matrix [][]*node, lIM map[string]*lazer) bool {
-	currentCoord := laz.coord
-	currNode := matrix[currentCoord[0]][currentCoord[1]]
-	row := currNode.row + directions[direction][0]
-	col := currNode.col + directions[direction][1]
-	currNode.visited = true
-
-	// if we've already been there with this lazer, we found a loop
-	if slices.Contains(*laz.visited, fmt.Sprint(row)+","+fmt.Sprint(col)) {
-		return true
-	}
-
-	// Are we in bounds?
-	if inBounds(row, col, len(matrix)-1, len(matrix[0])-1) {
-		(*laz.visited) = append(*laz.visited, fmt.Sprint(row)+","+fmt.Sprint(col))
-		next := matrix[row][col]
-		laz.coord = [2]int{next.row, next.col}
-		next.visited = true
-
-		if next.str == "." {
-			return false
-		}
-
-		if next.str == "\\" {
-			if direction == ">" {
-				laz.direction = "v"
-			}
-			if direction == "<" {
-				laz.direction = "^"
-			}
-			if direction == "^" {
-				laz.direction = "<"
-			}
-			if direction == "v" {
-				laz.direction = ">"
-			}
-			return false
-		}
-		if next.str == "/" {
-			if direction == ">" {
-				laz.direction = "^"
-			}
-			if direction == "<" {
-				laz.direction = "v"
-			}
-			if direction == "^" {
-				laz.direction = ">"
-			}
-			if direction == "v" {
-				laz.direction = "<"
-			}
-			return false
-		}
-		if next.str == "|" {
-			if direction == ">" || direction == "<" {
-				id := uuid.New()
-				lIM[id.String()] = &lazer{
-					direction: "^",
-					coord:     laz.coord,
-					visited:   &[]string{},
-				}
-				id = uuid.New()
-				lIM[id.String()] = &lazer{
-					direction: "v",
-					coord:     laz.coord,
-					visited:   &[]string{},
-				}
-				return true
-			}
-			return false
-		}
-
-		// If blank, just go there
-		if next.str == "-" {
-			if direction == "^" || direction == "v" {
-				id := uuid.New()
-				lIM[id.String()] = &lazer{
-					direction: "<",
-					coord:     laz.coord,
-					visited:   &[]string{},
-				}
-				id = uuid.New()
-				lIM[id.String()] = &lazer{
-					direction: ">",
-					coord:     laz.coord,
-					visited:   &[]string{},
-				}
-				return true
-			}
-			return false
-		}
-	}
-	// If we're out of bounds, this route is done.
-	return true
 }
 
 func Part01() {
@@ -155,6 +50,82 @@ func Part01() {
 	inputArr := strings.Split(dataInput, "\n")
 
 	matrix := make([][]*node, len(inputArr))
+
+	visited := map[string]bool{}
+
+	var recurLazer func(node *node, direction string) int
+	recurLazer = func(node *node, direction string) int {
+		// we went 1 too far, subtract 1
+		if visited[fmt.Sprint(node.row)+","+fmt.Sprint(node.col)+direction] {
+			return -1
+		}
+		visited[fmt.Sprint(node.row)+","+fmt.Sprint(node.col)+direction] = true
+
+		node.visited = true
+
+		row := node.row + directions[direction][0]
+		col := node.col + directions[direction][1]
+
+		allVisit := 0
+		// Are we in bounds?
+		if inBounds(row, col, len(matrix)-1, len(matrix[0])-1) {
+			allVisit = 1
+			next := matrix[row][col]
+
+			if next.str == "." {
+				allVisit += recurLazer(next, direction)
+			}
+
+			if next.str == "\\" {
+				if direction == ">" {
+					allVisit += recurLazer(next, "v")
+				}
+				if direction == "<" {
+					allVisit += recurLazer(next, "^")
+				}
+				if direction == "^" {
+					allVisit += recurLazer(next, "<")
+				}
+				if direction == "v" {
+					allVisit += recurLazer(next, ">")
+				}
+			}
+			if next.str == "/" {
+				if direction == ">" {
+					allVisit += recurLazer(next, "^")
+				}
+				if direction == "<" {
+					allVisit += recurLazer(next, "v")
+				}
+				if direction == "^" {
+					allVisit += recurLazer(next, ">")
+				}
+				if direction == "v" {
+					allVisit += recurLazer(next, "<")
+				}
+			}
+			if next.str == "|" {
+				if direction == ">" || direction == "<" {
+					allVisit += recurLazer(next, "^")
+					allVisit += recurLazer(next, "v")
+				} else {
+					allVisit += recurLazer(next, direction)
+				}
+			}
+
+			// If blank, just go there
+			if next.str == "-" {
+				if direction == "^" || direction == "v" {
+					allVisit += recurLazer(next, "<")
+					allVisit += recurLazer(next, ">")
+				} else {
+					allVisit += recurLazer(next, direction)
+				}
+			}
+		}
+		// If we're out of bounds, this route is done.
+		return allVisit
+	}
 
 	// Create node matrix
 	for i := 0; i < len(inputArr); i++ {
@@ -177,51 +148,11 @@ func Part01() {
 		}
 	}
 
-	lazerStart := [2]int{0, 0}
-	start_id := uuid.New()
-	lazersInMotion := map[string]*lazer{
-		start_id.String(): {
-			direction: "v",
-			coord:     lazerStart,
-			visited:   &[]string{},
-		},
-	}
+	startNode := matrix[0][0]
+	startDirection := "v"
 
-	// For debugging
-	debugVisitedNodes := []*node{}
-	resultMatrix := [][]string{}
-	//
-
-	prevValueStop := 0
-
-	for len(lazersInMotion) > 0 {
-		// Track the lazer through all the neighbors
-		for lazerKey, currLazer := range lazersInMotion {
-			complete := motion(currLazer, currLazer.direction, matrix, lazersInMotion)
-			if complete {
-				delete(lazersInMotion, lazerKey)
-			}
-		}
-		//
-		visitedSpots := 0
-		for i, row := range matrix {
-			resultMatrix = append(resultMatrix, make([]string, len(row)))
-			for j, col := range row {
-				if col.visited {
-					visitedSpots += 1
-					debugVisitedNodes = append(debugVisitedNodes, col)
-					resultMatrix[i][j] = "#"
-				} else {
-					resultMatrix[i][j] = col.str
-				}
-			}
-		}
-		if prevValueStop == visitedSpots {
-			fmt.Println("Part 1: ", visitedSpots)
-			util.PrintMatrix(resultMatrix)
-		}
-		prevValueStop = visitedSpots
-	}
+	totalVisited := recurLazer(startNode, startDirection)
+	fmt.Println("Part 1: ", totalVisited)
 }
 
 func Part02() {
