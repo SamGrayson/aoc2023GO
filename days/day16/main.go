@@ -53,78 +53,75 @@ func Part01() {
 
 	visited := map[string]bool{}
 
-	var recurLazer func(node *node, direction string) int
-	recurLazer = func(node *node, direction string) int {
+	var recurLazer func(node *node, direction string)
+	recurLazer = func(node *node, direction string) {
 		// we went 1 too far, subtract 1
 		if visited[fmt.Sprint(node.row)+","+fmt.Sprint(node.col)+direction] {
-			return -1
+			return
 		}
 		visited[fmt.Sprint(node.row)+","+fmt.Sprint(node.col)+direction] = true
-
 		node.visited = true
 
 		row := node.row + directions[direction][0]
 		col := node.col + directions[direction][1]
 
-		allVisit := 0
 		// Are we in bounds?
 		if inBounds(row, col, len(matrix)-1, len(matrix[0])-1) {
-			allVisit = 1
 			next := matrix[row][col]
 
 			if next.str == "." {
-				allVisit += recurLazer(next, direction)
+				recurLazer(next, direction)
 			}
 
 			if next.str == "\\" {
 				if direction == ">" {
-					allVisit += recurLazer(next, "v")
+					recurLazer(next, "v")
 				}
 				if direction == "<" {
-					allVisit += recurLazer(next, "^")
+					recurLazer(next, "^")
 				}
 				if direction == "^" {
-					allVisit += recurLazer(next, "<")
+					recurLazer(next, "<")
 				}
 				if direction == "v" {
-					allVisit += recurLazer(next, ">")
+					recurLazer(next, ">")
 				}
 			}
 			if next.str == "/" {
 				if direction == ">" {
-					allVisit += recurLazer(next, "^")
+					recurLazer(next, "^")
 				}
 				if direction == "<" {
-					allVisit += recurLazer(next, "v")
+					recurLazer(next, "v")
 				}
 				if direction == "^" {
-					allVisit += recurLazer(next, ">")
+					recurLazer(next, ">")
 				}
 				if direction == "v" {
-					allVisit += recurLazer(next, "<")
+					recurLazer(next, "<")
 				}
 			}
 			if next.str == "|" {
 				if direction == ">" || direction == "<" {
-					allVisit += recurLazer(next, "^")
-					allVisit += recurLazer(next, "v")
+					recurLazer(next, "^")
+					recurLazer(next, "v")
 				} else {
-					allVisit += recurLazer(next, direction)
+					recurLazer(next, direction)
 				}
 			}
 
 			// If blank, just go there
 			if next.str == "-" {
 				if direction == "^" || direction == "v" {
-					allVisit += recurLazer(next, "<")
-					allVisit += recurLazer(next, ">")
+					recurLazer(next, "<")
+					recurLazer(next, ">")
 				} else {
-					allVisit += recurLazer(next, direction)
+					recurLazer(next, direction)
 				}
 			}
 		}
 		// If we're out of bounds, this route is done.
-		return allVisit
+		return
 	}
 
 	// Create node matrix
@@ -151,7 +148,26 @@ func Part01() {
 	startNode := matrix[0][0]
 	startDirection := "v"
 
-	totalVisited := recurLazer(startNode, startDirection)
+	recurLazer(startNode, startDirection)
+
+	// For testing
+	finalMatrix := [][]string{}
+	totalVisited := 0
+	for i, row := range matrix {
+		finalMatrix = append(finalMatrix, make([]string, len(row)))
+		for j, col := range row {
+			if col.visited {
+				finalMatrix[i][j] = "#"
+				totalVisited++
+			} else {
+				finalMatrix[i][j] = col.str
+			}
+		}
+	}
+
+	// For testing
+	// util.PrintMatrix(finalMatrix)
+
 	fmt.Println("Part 1: ", totalVisited)
 }
 
