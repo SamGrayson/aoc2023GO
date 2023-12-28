@@ -120,8 +120,6 @@ func Part01() {
 				}
 			}
 		}
-		// If we're out of bounds, this route is done.
-		return
 	}
 
 	// Create node matrix
