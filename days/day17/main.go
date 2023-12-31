@@ -14,7 +14,7 @@ type node struct {
 	loss         int
 	shortest     int
 	shortestPrev *node
-	path         []string
+	direction    string
 }
 
 var dirMap map[string]string = map[string]string{
@@ -36,6 +36,26 @@ func getLowestNext(unvisted map[string]*node) *node {
 		}
 	}
 	return shortest
+}
+
+// Skip calculating a next node if it means going more than 3 in a row.
+func shouldContinue(currNode *node, nextDirection string) bool {
+	gogo := true
+	currDir := nextDirection
+	dirCount := 0
+	if currNode.shortestPrev != nil {
+		for gogo {
+			if currDir == currNode.direction {
+				dirCount++
+			} else if dirCount == 3 {
+				return false
+			} else {
+				break
+			}
+			currNode = currNode.shortestPrev
+		}
+	}
+	return true
 }
 
 func Part01() {
@@ -82,13 +102,13 @@ func Part01() {
 			nRow := idx[0] + currNode.row
 			nCol := idx[1] + currNode.col
 			direction := dirMap[genKey(idx[0], idx[1])]
-			if nRow >= 0 && nRow <= len(matrix)-1 && nCol <= len(matrix[0])-1 && nCol >= 0 {
+			if nRow >= 0 && nRow <= len(matrix)-1 && nCol <= len(matrix[0])-1 && nCol >= 0 && shouldContinue(currNode, direction) {
 				next := matrix[nRow][nCol]
 				if _, ok := visited[genKey(next.row, next.col)]; !ok {
 					if currNode.shortest+next.loss < next.shortest {
 						(*unvisitedNodes[genKey(next.row, next.col)]).shortest = currNode.shortest + next.loss
+						(*unvisitedNodes[genKey(next.row, next.col)]).direction = direction
 						(*unvisitedNodes[genKey(next.row, next.col)]).shortestPrev = currNode
-						(*unvisitedNodes[genKey(next.row, next.col)]).path = append(currNode.path, direction)
 					}
 				}
 			}
@@ -103,7 +123,7 @@ func Part01() {
 	currNode = visited[genKey(len(matrix)-1, len(matrix[0])-1)]
 	totalLoss := 0
 	for gogo {
-		fmt.Println(currNode.row, ", ", currNode.col)
+		fmt.Println(currNode.row, ", ", currNode.col, " ", currNode.direction)
 		if currNode.row == 0 && currNode.col == 0 {
 			break
 		}
