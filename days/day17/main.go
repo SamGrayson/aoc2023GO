@@ -12,20 +12,16 @@ type node struct {
 	row          int
 	col          int
 	loss         int
-	neighbors    *[]node
 	shortest     int
 	shortestPrev *node
+	path         []string
 }
 
-func generateNodeNeighbors(n *node, row, col int, matrix [][]*node) {
-	neighborIdx := util.GetNeighborsPlus()
-	for _, idx := range neighborIdx {
-		nRow := idx[0] + n.row
-		nCol := idx[1] + n.col
-		if nRow >= 0 && nRow <= len(matrix)-1 && nCol <= len(matrix[0])-1 && nCol >= 0 {
-			*n.neighbors = append(*n.neighbors, *matrix[nRow][nCol])
-		}
-	}
+var dirMap map[string]string = map[string]string{
+	"-1,0": "^",
+	"1,0":  "v",
+	"0,1":  ">",
+	"0,-1": "<",
 }
 
 func genKey(row, col int) string {
@@ -58,7 +54,6 @@ func Part01() {
 				row:          i,
 				col:          j,
 				loss:         util.ToInt(string(inputArr[i][j])),
-				neighbors:    &[]node{},
 				shortest:     math.MaxInt,
 				shortestPrev: &node{},
 			}
@@ -71,7 +66,6 @@ func Part01() {
 	// Create neighbors
 	for i := 0; i < len(inputArr); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			generateNodeNeighbors(matrix[i][j], i, j, matrix)
 			unvisitedNodes[genKey(i, j)] = matrix[i][j]
 		}
 	}
@@ -83,13 +77,19 @@ func Part01() {
 	delete(unvisitedNodes, genKey(currNode.row, currNode.col))
 
 	for len(unvisitedNodes) > 0 {
-		for i, neighbor := range *currNode.neighbors {
-			if _, ok := visited[genKey(neighbor.row, neighbor.col)]; !ok {
-				if currNode.shortest+neighbor.loss < neighbor.shortest {
-					(*currNode.neighbors)[i].shortest = currNode.shortest + neighbor.loss
-					(*currNode.neighbors)[i].shortestPrev = currNode
-					(*unvisitedNodes[genKey(neighbor.row, neighbor.col)]).shortest = currNode.shortest + neighbor.loss
-					(*unvisitedNodes[genKey(neighbor.row, neighbor.col)]).shortestPrev = currNode
+		neighborIdx := util.GetNeighborsPlus()
+		for _, idx := range neighborIdx {
+			nRow := idx[0] + currNode.row
+			nCol := idx[1] + currNode.col
+			direction := dirMap[genKey(idx[0], idx[1])]
+			if nRow >= 0 && nRow <= len(matrix)-1 && nCol <= len(matrix[0])-1 && nCol >= 0 {
+				next := matrix[nRow][nCol]
+				if _, ok := visited[genKey(next.row, next.col)]; !ok {
+					if currNode.shortest+next.loss < next.shortest {
+						(*unvisitedNodes[genKey(next.row, next.col)]).shortest = currNode.shortest + next.loss
+						(*unvisitedNodes[genKey(next.row, next.col)]).shortestPrev = currNode
+						(*unvisitedNodes[genKey(next.row, next.col)]).path = append(currNode.path, direction)
+					}
 				}
 			}
 		}
@@ -103,6 +103,7 @@ func Part01() {
 	currNode = visited[genKey(len(matrix)-1, len(matrix[0])-1)]
 	totalLoss := 0
 	for gogo {
+		fmt.Println(currNode.row, ", ", currNode.col)
 		if currNode.row == 0 && currNode.col == 0 {
 			break
 		}
