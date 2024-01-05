@@ -162,6 +162,15 @@ func PrintMatrix(matrix [][]string) {
 	}
 }
 
+func PrintIntMatrix(matrix [][]int) {
+	for _, row := range matrix {
+		for _, cell := range row {
+			fmt.Printf("%d", cell)
+		}
+		fmt.Println()
+	}
+}
+
 func PrintMatrixFloat(matrix [][]float64) {
 	for _, row := range matrix {
 		for _, cell := range row {
