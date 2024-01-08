@@ -5,32 +5,39 @@ import (
 	"os"
 	"strings"
 	"util"
-
-	"github.com/thoas/go-funk"
 )
 
 func main() {
 	Part01()
-	// Part02()
 }
 
+// JUST USED AN ONLINE GRAPH TOOL - :D
 func Part01() {
-	dataInput, err := util.GetInput("02")
+	dataInput, err := util.GetInput("25")
 	if err != nil {
 		os.Exit(1)
 	}
-	inputArr := strings.Fields(dataInput)
-	funk.All(true)
 
-	fmt.Println(inputArr)
-}
+	relativePath, _ := util.GetRelativePath("25", "output.dot")
 
-func Part02() {
-	dataInput, err := util.GetInput("02")
+	file, err := os.Create(relativePath)
 	if err != nil {
-		os.Exit(1)
+		fmt.Println("Error creating file:", err)
+		return
 	}
-	inputArr := strings.Fields(dataInput)
+	defer file.Close()
 
-	fmt.Println(inputArr)
+	// Write top
+	file.WriteString("graph { \n")
+
+	inputArr := strings.Split(dataInput, "\n")
+
+	for _, line := range inputArr {
+		line = strings.Replace(line, ": ", "--", -1)
+		line = strings.Join(strings.Split(line, " "), ",")
+		file.WriteString(line + "\n")
+	}
+
+	// Write bot
+	file.WriteString("}")
 }

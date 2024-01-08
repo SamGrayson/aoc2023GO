@@ -19,3 +19,5 @@
 
 # Input files
 **/input.txt
+
+**.DS_Store

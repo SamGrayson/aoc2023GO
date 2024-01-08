@@ -23,8 +23,7 @@ func ToFloat(s string) float64 {
 	return res
 }
 
-func GetInput(day string) (string, error) {
-	// Get current working directory
+func GetRelativePath(day string, fileName string) (string, error) {
 	wd, _ := os.Getwd()
 
 	// Are we debuggin?
@@ -33,13 +32,19 @@ func GetInput(day string) (string, error) {
 	// Set debug path
 	var path string
 	if !(debug == "true") {
-		path = fmt.Sprintf("./days/day%s/input.txt", day)
+		path = fmt.Sprintf("./days/day%s/"+fileName, day)
 	} else {
-		path = "input.txt"
+		path = fileName
 	}
 
 	// Read the text file
 	pathToInput := filepath.Join(wd, path)
+	return pathToInput, nil
+}
+
+func GetInput(day string) (string, error) {
+	// Get current working directory
+	pathToInput, _ := GetRelativePath(day, "input.txt")
 	fileContent, err := os.ReadFile(pathToInput)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
