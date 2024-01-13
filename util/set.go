@@ -6,7 +6,7 @@ type Set map[interface{}]bool
 
 func isValidForSet(t interface{}) {
 	switch v := t.(type) {
-	case int, string:
+	case int, string, [2]int:
 		return
 	default:
 		fmt.Println("Received an unsupported type: ", v)

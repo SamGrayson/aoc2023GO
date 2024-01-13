@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"util"
@@ -124,7 +125,6 @@ func Part02() {
 	}
 	inputArr := strings.Split(dataInput, "\n")
 
-	edgeCoords := [][2]int{}
 	// up down left right
 	directions := map[string][2]int{
 		"3": {-1, 0},
@@ -132,10 +132,12 @@ func Part02() {
 		"2": {0, -1},
 		"0": {0, 1},
 	}
-	edgeCoords = append(edgeCoords, [2]int{0, 0})
 	startCoord := [2]int{0, 0}
+
+	// sort through edge coordinates and add them to a row mapping
+	rowMap := map[int][][2]int{}
+
 	for _, v := range inputArr {
-		// First value is always going to be 0,0
 		split := strings.Split(v, " ")
 		hex := split[2]
 		hex = hex[2 : len(hex)-1]
@@ -146,66 +148,36 @@ func Part02() {
 		for count > 0 {
 			newCoord := [2]int{startCoord[0] + dirCoord[0], startCoord[1] + dirCoord[1]}
 			startCoord = newCoord
-			edgeCoords = append(edgeCoords, newCoord)
+			if _, ok := rowMap[startCoord[0]+dirCoord[0]]; !ok {
+				rowMap[startCoord[0]+dirCoord[0]] = [][2]int{{startCoord[0] + dirCoord[0], startCoord[1] + dirCoord[1]}}
+			} else {
+				rowMap[startCoord[0]+dirCoord[0]] = append(rowMap[startCoord[0]+dirCoord[0]], [2]int{startCoord[0] + dirCoord[0], startCoord[1] + dirCoord[1]})
+			}
 			count--
 		}
 	}
 
-	minRow := funk.Reduce(edgeCoords, func(acc int, e [2]int) int {
-		if e[0] < acc {
-			return e[0]
-		}
-		return acc
-	}, math.MaxInt)
-	maxRow := funk.Reduce(edgeCoords, func(acc int, e [2]int) int {
-		if e[0] > acc {
-			return e[0]
-		}
-		return acc
-	}, 0)
+	var totalCount int64 = 0
+	for _, row := range rowMap {
+		sort.Slice(row, func(i, j int) bool {
+			for x := range row[i] {
+				if row[i][x] == row[j][x] {
+					continue
+				}
+				return row[i][x] < row[j][x]
+			}
+			return false
+		})
 
-	minCol := funk.Reduce(edgeCoords, func(acc int, e [2]int) int {
-		if e[1] < acc {
-			return e[1]
-		}
-		return acc
-	}, math.MaxInt)
-	maxCol := funk.Reduce(edgeCoords, func(acc int, e [2]int) int {
-		if e[1] > acc {
-			return e[1]
-		}
-		return acc
-	}, 0)
-
-	start := [2]int{}
-
-	matrix := [][]int{}
-	for i := 0; i <= maxRow.(int)-minRow.(int); i++ {
-		matrix = append(matrix, make([]int, maxCol.(int)+1-minCol.(int)))
-		for j := 0; j <= maxCol.(int)-minCol.(int); j++ {
-			if slices.Contains(edgeCoords, [2]int{i + minRow.(int), j + minCol.(int)}) {
-				matrix[i][j] = 1
-				// first find, start should be 1 over and 1 down (hopefully)
-				start = [2]int{i + 1, j + 1}
-			} else {
-				matrix[i][j] = 0
+		for i := 1; i <= len(row)-1; i++ {
+			if i%2 != 0 {
+				distance := row[i][1] - row[i-1][1]
+				totalCount += int64(math.Abs(float64(distance)))
 			}
 		}
 	}
 
-	// util.PrintIntMatrix(matrix) // DEBUG
-	floodFill(&matrix, start[0], start[1])
-
-	count := 0
-	for _, row := range matrix {
-		for _, col := range row {
-			if col == 1 {
-				count++
-			}
-		}
-	}
-
-	fmt.Println("Part 1 count:", count)
+	fmt.Println("Part 2 count:", totalCount)
 }
 
 func main() {
